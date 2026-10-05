@@ -26,6 +26,12 @@
   const PITCH_LIMIT = 32;
   const DRAG_DEG_PER_PX = 0.13;
   const AUTO_SPIN = reduceMotion ? 0 : 3.2; // degrees per second while idle
+  // Every plate rides its own ring around the sphere's axis and follows a turn by closing
+  // a fixed share of the remaining gap each second (an exponential ease-out): about
+  // FOLLOW_FASTEST for the ring nearest the middle, falling off to e^-FOLLOW_SPREAD of
+  // that at the poles, so the outer rings trail behind and settle last.
+  const FOLLOW_FASTEST = 10;
+  const FOLLOW_SPREAD = 2.3;
   const MIN_CARDS = 21;
   const MAX_CARDS = 36;
   const HEADLINE = 'I See Through the Wild';
@@ -146,13 +152,18 @@
     return Art ? Art.forProduct(product, { size: 'lg' }) : '';
   }
 
-  // A plate shows the shop's own photo of its product; the others borrow, in turn, a
-  // beetle photo from js/gallery.js. Without either it falls back to the illustration.
+  // The first plate of a product shows the shop's own photo of it; every other plate
+  // (a product without one, or a product coming round again when the shop lists few)
+  // borrows, in turn, a beetle photo from js/gallery.js, so the sphere never fills up
+  // with one picture. Without either it falls back to the illustration.
   const gallery = Array.isArray(window.EB_GALLERY) ? window.EB_GALLERY : [];
+  const shopPhotoShown = new Set();
   let galleryNext = 0;
 
   function cardMarkup(product) {
-    const shopPhoto = product.images && product.images[0];
+    const own = product.images && product.images[0];
+    const shopPhoto = own && !shopPhotoShown.has(product.id) ? own : null;
+    if (shopPhoto) shopPhotoShown.add(product.id);
     const borrowed = !shopPhoto && gallery.length ? gallery[galleryNext++ % gallery.length] : null;
     const photo = shopPhoto || borrowed;
     const media = photo
@@ -235,8 +246,9 @@
     const fragment = document.createDocumentFragment();
     for (let i = 0; i < count; i++) {
       const product = list[i % list.length];
-      const y = 1 - (i / (count - 1)) * 2;
-      const radius = Math.sqrt(Math.max(0, 1 - y * y));
+      // Heights are spread evenly and stop short of the poles: every plate has a ring of its own.
+      const y = (1 - (2 * (i + 0.5)) / count) * 0.96;
+      const radius = Math.sqrt(1 - y * y);
       const theta = i * golden;
       const x = Math.cos(theta) * radius;
       const z = Math.sin(theta) * radius;
@@ -246,8 +258,24 @@
       el.innerHTML = cardMarkup(product);
       const img = el.querySelector('img.st-photo');
       if (img) photos.push(img);
-      cards.push({ el, img, product, x, y, z, lat: Math.asin(y) * DEG, lon: Math.atan2(x, z) * DEG, d: -1, o: -1 });
+      cards.push({
+        el, img, product, x, y, z, radius,
+        lat: Math.asin(y) * DEG,
+        lon: Math.atan2(x, z) * DEG,
+        rate: Infinity, // how fast it follows a turn, set below
+        phi: cam.spin + cam.dragX, // the turn this plate has reached so far
+        lag: 0, // phi minus the sphere's turn: how far behind it is on its ring
+        drawn: NaN, // the lag its transform was last written for
+        moved: false,
+        d: -1,
+        o: -1,
+      });
       fragment.appendChild(el);
+    }
+    if (!reduceMotion) {
+      [...cards]
+        .sort((a, b) => Math.abs(a.y) - Math.abs(b.y))
+        .forEach((c, order) => (c.rate = FOLLOW_FASTEST * Math.exp(-FOLLOW_SPREAD * (order / (cards.length - 1)))));
     }
     buildFibers();
     orb.appendChild(fragment);
@@ -263,7 +291,8 @@
 
   // Threads of green light run from plate to plate. Each link is a flat strip along the
   // chord between two plates, facing outward and sitting just inside the sphere, so it
-  // passes behind the plates it joins and only shows in the gaps between them.
+  // passes behind the plates it joins and only shows in the gaps between them. When the
+  // plates drift apart on their rings the strip is laid again and its strands stretch.
   const FIBER_DEPTH = 0.97; // of R: how far out the strips sit
   const FIBER_TRIM = 0.1; // of R, cut from each end: a stretch that always lies under a plate
   const FIBER_UNITS = 1000; // SVG units per R, so every fiber is drawn at the same scale
@@ -332,7 +361,8 @@
         `<path class="st-fiber-core" pathLength="1" d="${d}"/>`;
       if (pulsing && s === 0) spark = `<path class="st-fiber-spark" pathLength="1" d="${d}"/>`;
     }
-    return `<svg viewBox="0 0 ${width} ${FIBER_BAND}" aria-hidden="true">${paths}${spark}</svg>`;
+    // No aspect lock: the strands stretch with the strip while its plates are apart.
+    return `<svg viewBox="0 0 ${width} ${FIBER_BAND}" preserveAspectRatio="none" aria-hidden="true">${paths}${spark}</svg>`;
   }
 
   function buildFibers() {
@@ -340,15 +370,7 @@
     fiberLinks().forEach(([i, j], index) => {
       const a = cards[i];
       const b = cards[j];
-      // CSS space (y points down): x runs along the chord, z faces out of the sphere.
-      const along = [b.x - a.x, a.y - b.y, b.z - a.z];
-      const centre = [(a.x + b.x) / 2, -(a.y + b.y) / 2, (a.z + b.z) / 2];
-      const chord = Math.hypot(...along);
-      const reach = Math.hypot(...centre);
-      const d = along.map((v) => v / chord);
-      const n = centre.map((v) => v / reach);
-      const w = [n[1] * d[2] - n[2] * d[1], n[2] * d[0] - n[0] * d[2], n[0] * d[1] - n[1] * d[0]];
-      const length = Math.max(0.12, chord - FIBER_TRIM * 2);
+      const length = Math.max(0.12, Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) - FIBER_TRIM * 2);
       const random = seededRandom(i * 97 + j + 1);
       const el = document.createElement('div');
       el.className = 'st-fiber';
@@ -356,19 +378,54 @@
       el.style.setProperty('--spark', `${(2.6 + random() * 2.8).toFixed(2)}s`);
       el.style.setProperty('--wait', `${(-random() * 5).toFixed(2)}s`);
       el.innerHTML = fiberMarkup(length, random, !reduceMotion && index % FIBER_PULSE_EVERY === 0);
-      fibers.push({
-        el,
-        length,
-        reach,
-        basis: [...d, 0, ...w, 0, ...n, 0].map((v) => v.toFixed(4)).join(','),
-        x: centre[0],
-        y: centre[1],
-        z: centre[2],
-        o: -1,
-      });
+      // x, y, z and reach are the strip's centre, filled in by placeFiber().
+      fibers.push({ el, a, b, x: 0, y: 0, z: 0, reach: 1, o: -1 });
       fragment.appendChild(el);
     });
     orb.appendChild(fragment);
+  }
+
+  /* ============================================================ placement */
+
+  /** Where a plate is now, in the sphere's own frame: unit length, CSS y pointing down. */
+  function spot(c) {
+    const angle = (c.lon + c.lag) * RAD;
+    return [Math.sin(angle) * c.radius, -c.y, Math.cos(angle) * c.radius];
+  }
+
+  function placeCard(c) {
+    const [x, y, z] = spot(c);
+    c.el.style.transform =
+      `translate3d(${(x * R).toFixed(1)}px,${(y * R).toFixed(1)}px,${(z * R).toFixed(1)}px) ` +
+      `rotateY(${(c.lon + c.lag).toFixed(2)}deg) rotateX(${c.lat.toFixed(2)}deg)`;
+    c.drawn = c.lag;
+  }
+
+  /** Lays a fiber along the chord between its two plates, wherever they are now. */
+  function placeFiber(f) {
+    const a = spot(f.a);
+    const b = spot(f.b);
+    // x runs along the chord, z faces out of the sphere.
+    const along = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const centre = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+    const chord = Math.hypot(...along) || 1e-6;
+    const reach = Math.hypot(...centre) || 1e-6;
+    const d = along.map((v) => v / chord);
+    const n = centre.map((v) => v / reach);
+    const w = [n[1] * d[2] - n[2] * d[1], n[2] * d[0] - n[0] * d[2], n[0] * d[1] - n[1] * d[0]];
+    const width = Math.max(0.12, chord - FIBER_TRIM * 2) * R;
+    const band = (FIBER_BAND / FIBER_UNITS) * R;
+    const depth = R * FIBER_DEPTH;
+    f.el.style.width = `${width.toFixed(1)}px`;
+    f.el.style.height = `${band.toFixed(1)}px`;
+    f.el.style.margin = `${(-band / 2).toFixed(1)}px 0 0 ${(-width / 2).toFixed(1)}px`;
+    f.el.style.transform =
+      `matrix3d(${[...d, 0, ...w, 0, ...n, 0].map((v) => v.toFixed(4)).join(',')},` +
+      `${(centre[0] * depth).toFixed(1)},${(centre[1] * depth).toFixed(1)},${(centre[2] * depth).toFixed(1)},1)`;
+    f.x = centre[0];
+    f.y = centre[1];
+    f.z = centre[2];
+    f.reach = reach;
   }
 
   /* =============================================================== layout */
@@ -395,20 +452,8 @@
     stage.style.setProperty('--cw', `${cw}px`);
     stage.style.setProperty('--ch', `${Math.round(cw / 1.5)}px`);
     stage.classList.toggle('is-small', cw < 112);
-    for (const c of cards) {
-      c.el.style.transform =
-        `translate3d(${(c.x * R).toFixed(1)}px,${(-c.y * R).toFixed(1)}px,${(c.z * R).toFixed(1)}px) ` +
-        `rotateY(${c.lon.toFixed(2)}deg) rotateX(${c.lat.toFixed(2)}deg)`;
-    }
-    const band = (FIBER_BAND / FIBER_UNITS) * R;
-    const depth = R * FIBER_DEPTH;
-    for (const f of fibers) {
-      const width = f.length * R;
-      f.el.style.width = `${width.toFixed(1)}px`;
-      f.el.style.height = `${band.toFixed(1)}px`;
-      f.el.style.margin = `${(-band / 2).toFixed(1)}px 0 0 ${(-width / 2).toFixed(1)}px`;
-      f.el.style.transform = `matrix3d(${f.basis},${(f.x * depth).toFixed(1)},${(f.y * depth).toFixed(1)},${(f.z * depth).toFixed(1)},1)`;
-    }
+    cards.forEach(placeCard);
+    fibers.forEach(placeFiber);
   }
 
   window.addEventListener('resize', () => layout());
@@ -472,8 +517,10 @@
 
     const sx = cam.tilt + cam.dragY;
     const sy = cam.spin + cam.dragX;
-    world.style.transform = `translateZ(${cam.z.toFixed(2)}px) rotateY(${sy.toFixed(3)}deg) rotateX(${sx.toFixed(3)}deg)`;
-    headline.style.transform = `rotateX(${(-sx).toFixed(3)}deg) rotateY(${(-sy).toFixed(3)}deg) translateZ(${(R * 0.62).toFixed(1)}px)`;
+    // The sphere turns about its own axis first and is tilted after, so a turn carries
+    // every plate along its ring. The headline undoes both to stay square to the camera.
+    world.style.transform = `translateZ(${cam.z.toFixed(2)}px) rotateX(${sx.toFixed(3)}deg) rotateY(${sy.toFixed(3)}deg)`;
+    headline.style.transform = `rotateY(${(-sy).toFixed(3)}deg) rotateX(${(-sx).toFixed(3)}deg) translateZ(${(R * 0.62).toFixed(1)}px)`;
     headline.style.opacity = String(Math.max(0, 1 - p * 1.25).toFixed(3));
 
     if (scene) {
@@ -484,7 +531,6 @@
       }
     }
 
-    // Depth shading: rotate every unit vector like the world and read its z.
     const cy = Math.cos(sy * RAD);
     const syn = Math.sin(sy * RAD);
     const cx = Math.cos(sx * RAD);
@@ -492,9 +538,16 @@
     const shade = 1 - Math.min(1, p * 1.6);
     const near = persp * 0.66;
     for (const c of cards) {
-      const yc = -c.y; // CSS y points down
-      const z1 = yc * sxn + c.z * cx; // rotateX
-      const zf = -c.x * syn + z1 * cy; // rotateY
+      // Follow the turn along its own ring; the transform is rewritten only while the
+      // plate is still catching up (at a steady spin its lag settles and nothing moves).
+      c.phi += (sy - c.phi) * (1 - Math.exp(-c.rate * dt));
+      c.lag = c.phi - sy;
+      c.moved = !(Math.abs(c.lag - c.drawn) <= 0.02);
+      if (c.moved) placeCard(c);
+
+      // Depth shading: where the plate ends up after the turn and the tilt, read its z.
+      const turned = (c.lon + c.lag + sy) * RAD;
+      const zf = -c.y * sxn + Math.cos(turned) * c.radius * cx;
       const base = 0.14 + 0.86 * Math.pow((zf + 1) / 2, 0.85);
       // Coarse steps: fewer style changes per frame, invisible to the eye.
       const dim = Math.round(Math.min(0.92, shade * (1 - base)) * 25) / 25;
@@ -514,7 +567,8 @@
     // Fibers have no dark wash to take: they fade with depth instead, and out entirely
     // at the rim of the sphere, where a flat strip is seen edge-on as a broken line.
     for (const f of fibers) {
-      const zf = -f.x * syn + (f.y * sxn + f.z * cx) * cy;
+      if (f.a.moved || f.b.moved) placeFiber(f);
+      const zf = f.y * sxn + (-f.x * syn + f.z * cy) * cx;
       const base = 0.14 + 0.86 * Math.pow(Math.max(0, (zf + 1) / 2), 0.85);
       const absZ = zf * R + cam.z;
       const fade = absZ > near ? Math.max(0, 1 - (absZ - near) / 190) : 1;
