@@ -1,0 +1,204 @@
+/* E Beetle · 2.5D animated forest banner (built by js/banner.js inside #scene) */
+
+.scene {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100lvh; /* large viewport: no relayout when a mobile URL bar shows/hides */
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  background:
+    radial-gradient(ellipse 55% 45% at 26% -6%, rgba(247, 252, 222, .95) 0%, rgba(247, 252, 222, 0) 70%),
+    linear-gradient(180deg, #a9d091 0%, #7aae7a 26%, #4b8058 56%, #244b32 82%, #15301f 100%);
+}
+.scene > * { opacity: 0; transition: opacity .8s ease; }
+.scene.is-ready > * { opacity: 1; }
+
+/* Parallax layers are larger than the viewport so shifting them never reveals an edge.
+   Keep these insets in sync with BLEED in banner.js. */
+.sc-layer {
+  position: absolute;
+  left: -60px;
+  right: -60px;
+  top: -50px;
+  bottom: -170px;
+  will-change: transform;
+}
+.sc-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Sprites: small, independently composited pieces of art */
+.sc-sprite { position: absolute; left: 0; top: 0; will-change: transform; }
+.sc-inner { position: absolute; inset: 0; }
+.sc-inner > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.sc-sway { animation: sc-sway var(--dur, 7s) ease-in-out var(--delay, 0s) infinite alternate; }
+@keyframes sc-sway {
+  from { transform: rotate(calc(var(--amp, 2deg) * -1)); }
+  to { transform: rotate(var(--amp, 2deg)); }
+}
+
+.sc-far { filter: saturate(.9); }
+.sc-front { filter: blur(2.6px) saturate(1.05); }
+.sc-distant { opacity: .7; filter: blur(.5px) saturate(.75); }
+
+/* Mist bands drift sideways forever (200% wide, seamless repeat) */
+.sc-mistlayer { overflow: hidden; }
+.sc-mist {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  background-repeat: repeat-x;
+  background-size: 50% 100%;
+  animation: sc-drift var(--dur, 120s) linear infinite;
+  will-change: transform;
+}
+.sc-mist-a {
+  top: 30%;
+  height: 42%;
+  opacity: .75;
+  --dur: 150s;
+  background-image:
+    radial-gradient(ellipse 18% 42% at 10% 55%, rgba(232, 246, 226, .55), rgba(232, 246, 226, 0) 70%),
+    radial-gradient(ellipse 24% 36% at 34% 42%, rgba(232, 246, 226, .45), rgba(232, 246, 226, 0) 70%),
+    radial-gradient(ellipse 16% 46% at 57% 60%, rgba(232, 246, 226, .5), rgba(232, 246, 226, 0) 70%),
+    radial-gradient(ellipse 26% 40% at 82% 48%, rgba(232, 246, 226, .45), rgba(232, 246, 226, 0) 70%);
+}
+.sc-mist-b {
+  top: 58%;
+  height: 46%;
+  opacity: .6;
+  --dur: 95s;
+  animation-direction: reverse;
+  background-image:
+    radial-gradient(ellipse 22% 40% at 14% 50%, rgba(226, 244, 222, .5), rgba(226, 244, 222, 0) 70%),
+    radial-gradient(ellipse 18% 44% at 44% 58%, rgba(226, 244, 222, .42), rgba(226, 244, 222, 0) 70%),
+    radial-gradient(ellipse 26% 38% at 74% 46%, rgba(226, 244, 222, .5), rgba(226, 244, 222, 0) 70%);
+}
+@keyframes sc-drift { to { transform: translate3d(-50%, 0, 0); } }
+
+/* God rays falling from the canopy (sun at the upper left) */
+.sc-rayslayer { mix-blend-mode: screen; }
+.sc-ray {
+  position: absolute;
+  top: -8%;
+  left: var(--x, 20%);
+  width: var(--w, 140px);
+  height: 125%;
+  background: linear-gradient(180deg, rgba(255, 251, 214, .62) 0%, rgba(255, 251, 214, .2) 48%, rgba(255, 251, 214, 0) 86%);
+  transform: rotate(var(--r, -22deg));
+  transform-origin: 50% 0;
+  filter: blur(10px);
+  opacity: var(--o1, .3);
+  animation: sc-ray var(--dur, 9s) ease-in-out var(--delay, 0s) infinite alternate;
+}
+@keyframes sc-ray {
+  from { opacity: var(--o1, .25); }
+  to { opacity: var(--o2, .7); }
+}
+
+/* Floating spores / moisture specks */
+.sc-spore {
+  position: absolute;
+  width: var(--s, 4px);
+  height: var(--s, 4px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 232, .95) 0%, rgba(238, 255, 196, .5) 40%, rgba(238, 255, 196, 0) 72%);
+  opacity: 0;
+  animation: sc-float var(--dur, 12s) linear var(--delay, 0s) infinite;
+}
+@keyframes sc-float {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  12% { opacity: var(--o, .8); }
+  50% { transform: translate3d(var(--dx, 20px), -70px, 0); }
+  88% { opacity: var(--o, .8); }
+  100% { transform: translate3d(calc(var(--dx, 20px) * -.5), -140px, 0); opacity: 0; }
+}
+
+/* Beetles: tripod gait (legs a/b alternate), body bob and antenna twitches */
+.sc-beetle .sc-leg { animation: sc-step var(--gait, .45s) ease-in-out infinite alternate paused; }
+.sc-beetle .sc-leg.sc-r { animation-name: sc-step-r; }
+.sc-beetle .sc-leg.sc-b { animation-delay: calc(var(--gait, .45s) * -1); }
+.sc-beetle.is-walking .sc-leg { animation-play-state: running; }
+.sc-beetle.is-walking .sc-body { animation: sc-bob var(--gait, .45s) ease-in-out infinite alternate; }
+.sc-ant { animation: sc-ant 3.4s ease-in-out infinite; }
+.sc-ant-r { animation-delay: -1.3s; }
+@keyframes sc-step { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+@keyframes sc-step-r { from { transform: rotate(15deg); } to { transform: rotate(-15deg); } }
+@keyframes sc-bob { from { transform: translateY(0); } to { transform: translateY(-1.2px); } }
+@keyframes sc-ant {
+  0%, 100% { transform: rotate(0deg); }
+  40% { transform: rotate(-12deg); }
+  55% { transform: rotate(7deg); }
+}
+
+/* Left-side veil keeps the hero text readable over a busy scene */
+.sc-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(6, 24, 13, .68) 0%, rgba(6, 24, 13, .42) 32%, rgba(6, 24, 13, .1) 56%, rgba(6, 24, 13, 0) 70%),
+    linear-gradient(180deg, rgba(6, 24, 13, .28) 0%, rgba(6, 24, 13, 0) 20%, rgba(6, 24, 13, 0) 60%, rgba(6, 24, 13, .52) 100%);
+}
+@media (max-width: 720px) {
+  .sc-veil {
+    background: linear-gradient(180deg, rgba(6, 24, 13, .62) 0%, rgba(6, 24, 13, .4) 50%, rgba(6, 24, 13, .58) 100%);
+  }
+  .sc-front { filter: blur(2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene *, .scene { animation: none !important; transition: none !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   Dark mood (data-mood="dark"): the green-black night forest behind the
+   beetle sphere. Same artwork, re-lit with filters so nothing is re-drawn.
+   ------------------------------------------------------------------------ */
+.scene[data-mood="dark"] {
+  background:
+    radial-gradient(ellipse 60% 45% at 30% -8%, rgba(126, 178, 120, 0.32) 0%, rgba(126, 178, 120, 0) 70%),
+    linear-gradient(180deg, #11261a 0%, #0a1810 45%, #050c08 100%);
+}
+
+/* One dark overlay (in the veil) re-lights every layer at once: far cheaper than
+   a filter per layer. Only the blurred foreground keeps a filter. */
+.scene[data-mood="dark"] .sc-far,
+.scene[data-mood="dark"] .sc-mid,
+.scene[data-mood="dark"] .sc-main { filter: none; }
+.scene[data-mood="dark"] .sc-front { filter: blur(3px); opacity: 0.55; }
+.scene[data-mood="dark"] .sc-mistlayer { opacity: 0.3; }
+.scene[data-mood="dark"] .sc-rayslayer { mix-blend-mode: normal; opacity: 0.22; }
+
+@media (max-width: 720px) {
+  .scene[data-mood="dark"] .sc-mistlayer,
+  .scene[data-mood="dark"] .sc-rayslayer { display: none; }
+  .scene[data-mood="dark"] .sc-front { filter: none; opacity: 0.5; }
+}
+
+/* Paused while the page shows products (the forest is only a backdrop then). */
+.scene.is-paused,
+.scene.is-paused * {
+  animation-play-state: paused !important;
+}
+
+/* Spores become fireflies in the dark */
+.scene[data-mood="dark"] .sc-spore {
+  background: radial-gradient(circle, rgba(246, 255, 196, 1) 0%, rgba(214, 255, 140, 0.55) 38%, rgba(214, 255, 140, 0) 72%);
+  box-shadow: 0 0 10px 2px rgba(214, 255, 140, 0.25);
+}
+
+.scene[data-mood="dark"] .sc-veil {
+  background:
+    radial-gradient(ellipse 85% 80% at 50% 48%, rgba(2, 8, 4, 0) 30%, rgba(2, 8, 4, 0.5) 78%, rgba(2, 8, 4, 0.85) 100%),
+    linear-gradient(180deg, rgba(2, 8, 4, 0.4) 0%, rgba(2, 8, 4, 0) 24%, rgba(2, 8, 4, 0) 68%, rgba(2, 8, 4, 0.65) 100%),
+    rgba(3, 10, 6, 0.5);
+}

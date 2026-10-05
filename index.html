@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>E Beetle — ร้านด้วงคุณภาพ</title>
+<meta name="description" content="E Beetle ร้านด้วงคุณภาพ ส่งตรงจากฟาร์ม รวมด้วงกว่าง ด้วงคีม ตัวอ่อน และอุปกรณ์เลี้ยงครบชุด สั่งซื้อและปรึกษาการเลี้ยงได้ที่เพจ Facebook E Beetle">
+<meta name="theme-color" content="#000000">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="E Beetle">
+<meta property="og:locale" content="th_TH">
+<meta property="og:title" content="E Beetle — ร้านด้วงคุณภาพ">
+<meta property="og:description" content="ด้วงกว่าง ด้วงคีม ตัวอ่อน และอุปกรณ์เลี้ยงครบชุด คัดตัวแข็งแรงทุกตัว สั่งซื้อและปรึกษาการเลี้ยงได้ที่เพจ Facebook E Beetle">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600&amp;family=Playfair+Display:ital,wght@0,400;0,500;1,400&amp;family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap">
+<link rel="stylesheet" href="css/sphere.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="splash" id="splash" aria-hidden="true">
+  <img class="splash-logo" src="assets/logo-badge-192.png" width="112" height="112" alt="">
+  <p class="splash-mark">E <em>Beetle</em></p>
+  <div class="splash-bar"><s id="splashBar"></s></div>
+  <p class="splash-tag">Beetle Collection · 2026</p>
+</div>
+
+<div id="stage" class="stage" aria-hidden="true"></div>
+
+<div class="page" id="top">
+  <a class="skip-link" href="#shop">ข้ามไปยังรายการสินค้า</a>
+
+  <!-- Icon sprite: referenced with <use href="#i-…"> here and in js/shop.js / js/sphere.js -->
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <symbol id="i-fb" viewBox="0 0 24 24"><path fill="currentColor" d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5a2 2 0 0 1 2-2h2.2L8.8 4h6.4l1.6 2.5H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20c0-9 6-15 15-15 0 9-6 15-15 15z"/><path d="M5 20 14 11"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="nav">
+      <a class="brand" href="#top">
+        <img class="brand-logo" src="assets/logo-badge-96.png" width="44" height="44" alt="">
+        <span class="brand-text">
+          <b class="brand-name" data-bind="shopName">E Beetle</b>
+          <small class="brand-tagline" data-bind="tagline" data-optional>ร้านด้วงคุณภาพ ส่งตรงจากฟาร์ม</small>
+        </span>
+      </a>
+
+      <form class="search" id="searchForm" role="search" action="#shop">
+        <label class="sr-only" for="q">ค้นหาสินค้า</label>
+        <input id="q" name="q" type="search" placeholder="ค้นหาด้วง เช่น กว่าง, คีม, เยลลี่..." autocomplete="off" enterkeyhint="search">
+        <button type="submit">
+          <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <span class="search-label">ค้นหา</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- With JS the hero is the scroll distance that drives the sphere zoom; without it, a plain intro. -->
+    <section class="hero" id="hero" aria-labelledby="heroTitle">
+      <div class="hero-fallback">
+        <img class="hero-logo" src="assets/logo-badge-192.png" width="120" height="120" alt="">
+        <p class="hero-kicker" data-bind="shopName">E Beetle</p>
+        <h1 class="hero-title" id="heroTitle">ด้วงสวย <span class="hl">เลี้ยงง่าย</span> ส่งถึงบ้าน</h1>
+        <p class="hero-text" data-bind="heroText" data-optional>รวมด้วงกว่าง ด้วงคีม ตัวอ่อน และอุปกรณ์เลี้ยงครบชุด คัดตัวแข็งแรงทุกตัว สั่งซื้อและปรึกษาการเลี้ยงได้ที่เพจ E Beetle</p>
+        <a class="btn btn-primary btn-lg" href="#shop">
+          เลือกชมด้วง
+          <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="shop" id="shop" aria-labelledby="shopTitle">
+      <div class="section-inner">
+        <div class="shop-head">
+          <div>
+            <p class="section-kicker">Beetle Collection</p>
+            <h2 class="section-title" id="shopTitle">สินค้าทั้งหมด</h2>
+            <p class="result-count" id="resultCount" aria-live="polite">กำลังโหลดรายการสินค้า…</p>
+          </div>
+          <label class="sort">
+            <span class="sort-label">เรียงตาม</span>
+            <select id="sort">
+              <option value="recommended">แนะนำ</option>
+              <option value="price-asc">ราคา ต่ำ → สูง</option>
+              <option value="price-desc">ราคา สูง → ต่ำ</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="chips" id="chips" role="group" aria-label="กรองตามหมวดหมู่">
+          <button type="button" class="chip" data-cat="all" aria-pressed="true">ทั้งหมด<span class="chip-count"></span></button>
+          <button type="button" class="chip" data-cat="rhino" aria-pressed="false">ด้วงกว่าง<span class="chip-count"></span></button>
+          <button type="button" class="chip" data-cat="stag" aria-pressed="false">ด้วงคีม<span class="chip-count"></span></button>
+          <button type="button" class="chip" data-cat="larva" aria-pressed="false">ตัวอ่อน<span class="chip-count"></span></button>
+          <button type="button" class="chip" data-cat="supply" aria-pressed="false">อุปกรณ์เลี้ยง<span class="chip-count"></span></button>
+        </div>
+
+        <div class="grid" id="grid" aria-busy="true"></div>
+
+        <div class="state-box" id="empty" hidden>
+          <svg class="state-icon" aria-hidden="true"><use href="#i-leaf"></use></svg>
+          <h3 class="state-title" id="emptyTitle">ไม่พบสินค้าที่ค้นหา</h3>
+          <p class="state-text" id="emptyText">ลองใช้คำอื่น เช่น “กว่าง” “คีม” หรือ “ตัวอ่อน”</p>
+          <div class="state-actions">
+            <button type="button" class="btn btn-soft" id="clearFilters">ล้างการค้นหา</button>
+            <a class="btn btn-primary" data-fb href="https://www.facebook.com/share/14q8LxbSTaR/" target="_blank" rel="noopener noreferrer">
+              <svg class="icon" aria-hidden="true"><use href="#i-fb"></use></svg>
+              <span>ไม่เจอตัวที่ตามหา? ทักถามเพจได้เลย</span>
+              <span class="sr-only">(เปิดในแท็บใหม่)</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="state-box state-box--error" id="loadError" hidden>
+          <svg class="state-icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+          <h3 class="state-title">โหลดรายการสินค้าไม่สำเร็จ</h3>
+          <p class="state-text">ลองโหลดใหม่อีกครั้ง หรือดูสินค้าและสอบถามได้ที่เพจ Facebook ของร้าน</p>
+          <div class="state-actions">
+            <button type="button" class="btn btn-soft" id="retryLoad">ลองใหม่อีกครั้ง</button>
+            <a class="btn btn-primary" data-fb href="https://www.facebook.com/share/14q8LxbSTaR/" target="_blank" rel="noopener noreferrer">
+              <svg class="icon" aria-hidden="true"><use href="#i-fb"></use></svg>
+              <span>ดูสินค้าที่เพจ Facebook</span>
+              <span class="sr-only">(เปิดในแท็บใหม่)</span>
+            </a>
+          </div>
+        </div>
+
+        <noscript>
+          <div class="state-box">
+            <h3 class="state-title">กรุณาเปิดใช้งาน JavaScript เพื่อดูรายการสินค้า</h3>
+            <p class="state-text">หรือดูสินค้าทั้งหมดและสั่งซื้อได้ที่ <a href="https://www.facebook.com/share/14q8LxbSTaR/" target="_blank" rel="noopener noreferrer">เพจ Facebook E Beetle</a></p>
+          </div>
+        </noscript>
+      </div>
+    </section>
+
+    <section class="features" id="features" aria-labelledby="featuresTitle">
+      <div class="section-inner">
+        <p class="section-kicker">Why E Beetle</p>
+        <h2 class="section-title" id="featuresTitle">ทำไมต้อง <span data-bind="shopName">E Beetle</span></h2>
+        <ul class="stats" id="stats" aria-label="ข้อมูลร้าน">
+          <li class="stat"><b>12+</b><span>สายพันธุ์</span></li>
+          <li class="stat"><b>4,800+</b><span>ลูกค้าที่ไว้ใจ</span></li>
+          <li class="stat"><b>รับประกัน</b><span>ด้วงถึงมือมีชีวิต</span></li>
+        </ul>
+        <div class="feature-grid">
+          <article class="feature">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span>
+            <h3>รับประกันถึงมือ</h3>
+            <p>หากด้วงเสียชีวิตระหว่างขนส่ง ส่งตัวใหม่ให้ทันทีไม่มีค่าใช้จ่าย</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-truck"></use></svg></span>
+            <h3>แพ็คอย่างดี</h3>
+            <p>กล่องระบายอากาศ บุขี้เลื่อยหมัก ส่งด่วนภายใน 1–2 วันทั่วประเทศ</p>
+          </article>
+          <a class="feature feature--link" data-fb href="https://www.facebook.com/share/14q8LxbSTaR/" target="_blank" rel="noopener noreferrer">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-chat"></use></svg></span>
+            <h3>ปรึกษาการเลี้ยงฟรี</h3>
+            <p>ทีมงานพร้อมตอบทุกคำถามทางเพจ ตั้งแต่เลี้ยงตัวอ่อนจนถึงเพาะพันธุ์</p>
+            <span class="feature-more">ทักแชทเพจ <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></span>
+            <span class="sr-only">(เปิดในแท็บใหม่)</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="contact">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo-badge-192.png" width="72" height="72" alt="โลโก้ร้าน E Beetle" loading="lazy" decoding="async">
+        <div>
+          <b data-bind="shopName">E Beetle</b>
+          <small data-bind="tagline" data-optional>ร้านด้วงคุณภาพ ส่งตรงจากฟาร์ม</small>
+        </div>
+      </div>
+      <div class="footer-contact">
+        <p class="footer-kicker"><svg class="icon icon-fb" aria-hidden="true"><use href="#i-fb"></use></svg> สั่งซื้อและสอบถามทางเพจ</p>
+        <p class="footer-page">เพจ Facebook: <b data-bind="facebookName">E Beetle</b></p>
+        <p class="footer-note" data-bind="contactNote" data-optional>สนใจตัวไหน ทักแชทเพจ Facebook ได้เลย ตอบไว พร้อมส่งรูปตัวจริงให้ดูก่อนตัดสินใจ</p>
+      </div>
+      <a class="btn btn-primary footer-cta" data-fb href="https://www.facebook.com/share/14q8LxbSTaR/" target="_blank" rel="noopener noreferrer">
+        <svg class="icon" aria-hidden="true"><use href="#i-fb"></use></svg>
+        <span>ไปที่เพจ <span data-bind="facebookName">E Beetle</span></span>
+        <span class="sr-only">(เปิดในแท็บใหม่)</span>
+      </a>
+      <p class="copyright">© 2026 <span data-bind="shopName">E Beetle</span> · ร้านด้วงคุณภาพ ส่งตรงจากฟาร์ม</p>
+    </div>
+  </footer>
+</div>
+
+<dialog class="pd" id="productDialog" aria-labelledby="pdTitle" aria-modal="true">
+  <div class="pd-sheet">
+    <button type="button" class="pd-close" data-action="close" aria-label="ปิดรายละเอียดสินค้า">
+      <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+    </button>
+    <div class="pd-scroll" id="pdScroll">
+      <div class="pd-content" id="pdContent"></div>
+    </div>
+    <div class="toast toast--dialog" id="pdToast" role="status" aria-live="polite" aria-atomic="true"></div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="js/catalog-data.js"></script>
+<script src="js/art.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/sphere.js"></script>
+</body>
+</html>
