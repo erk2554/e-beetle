@@ -146,13 +146,44 @@
     return Art ? Art.forProduct(product, { size: 'lg' }) : '';
   }
 
+  // A plate shows the shop's own photo of its product; the others borrow, in turn, a
+  // beetle photo from js/gallery.js. Without either it falls back to the illustration.
+  const gallery = Array.isArray(window.EB_GALLERY) ? window.EB_GALLERY : [];
+  let galleryNext = 0;
+
   function cardMarkup(product) {
-    const photo = product.images && product.images[0];
+    const shopPhoto = product.images && product.images[0];
+    const borrowed = !shopPhoto && gallery.length ? gallery[galleryNext++ % gallery.length] : null;
+    const photo = shopPhoto || borrowed;
     const media = photo
       ? `<img class="st-photo" alt="" draggable="false" decoding="async" data-src="${esc(photo.src)}">`
       : `<span class="st-art">${artMarkup(product)}</span>`;
     // Plain plates like a photo archive: the name shows in the product dialog.
     return `<figure class="st-fig" title="${esc(product.name)}">${media}</figure>`;
+  }
+
+  /** Most gallery licences ask for the author and the licence to be named: a folded list in the footer. */
+  function buildCredits() {
+    const footer = document.querySelector('.site-footer .footer-inner');
+    if (!footer || !gallery.length) return;
+    const items = gallery
+      .map((photo) => {
+        const license = photo.licenseUrl
+          ? `<a href="${esc(photo.licenseUrl)}" target="_blank" rel="noopener noreferrer license">${esc(photo.license)}</a>`
+          : esc(photo.license);
+        return (
+          `<li><a href="${esc(photo.source)}" target="_blank" rel="noopener noreferrer">${esc(photo.name)} <i>${esc(photo.sci)}</i></a>` +
+          ` · ${esc(photo.author)} · ${license}</li>`
+        );
+      })
+      .join('');
+    const credits = document.createElement('details');
+    credits.className = 'credits';
+    credits.innerHTML =
+      '<summary>เครดิตภาพด้วงบนหน้าแรก</summary>' +
+      '<p>ภาพจาก Wikimedia Commons ย่อขนาดและครอบตัดให้พอดีกรอบ ใช้ตามสัญญาอนุญาตของแต่ละภาพ</p>' +
+      `<ul>${items}</ul>`;
+    footer.appendChild(credits);
   }
 
   /** Decodes a photo once and, when it is large, downsizes it for the small sphere plate. */
@@ -218,6 +249,7 @@
       cards.push({ el, img, product, x, y, z, lat: Math.asin(y) * DEG, lon: Math.atan2(x, z) * DEG, d: -1, o: -1 });
       fragment.appendChild(el);
     }
+    buildFibers();
     orb.appendChild(fragment);
     layout(true);
 
@@ -225,6 +257,118 @@
     const maxWidth = vw <= 380 ? 420 : vw <= 640 ? 520 : vw <= 900 ? 640 : 760;
     progress.total += photos.length;
     photos.forEach((img) => loadPhoto(img, maxWidth));
+  }
+
+  /* =============================================================== fibers */
+
+  // Threads of green light run from plate to plate. Each link is a flat strip along the
+  // chord between two plates, facing outward and sitting just inside the sphere, so it
+  // passes behind the plates it joins and only shows in the gaps between them.
+  const FIBER_DEPTH = 0.97; // of R: how far out the strips sit
+  const FIBER_TRIM = 0.1; // of R, cut from each end: a stretch that always lies under a plate
+  const FIBER_UNITS = 1000; // SVG units per R, so every fiber is drawn at the same scale
+  const FIBER_BAND = 140; // SVG height of a strip
+  const FIBER_PULSE_EVERY = 3; // one link in three carries a travelling spark (repaints are not free)
+  const fibers = [];
+
+  /** Seeded random numbers, so every fiber keeps its shape between visits. */
+  function seededRandom(seed) {
+    let state = seed >>> 0;
+    return () => {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let t = Math.imul(state ^ (state >>> 15), state | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /** One web that reaches every plate: a spanning tree plus each plate's three nearest neighbours. */
+  function fiberLinks() {
+    const count = cards.length;
+    const gap = (a, b) => 1 - (cards[a].x * cards[b].x + cards[a].y * cards[b].y + cards[a].z * cards[b].z);
+    const links = new Map();
+    const link = (a, b) => links.set(a < b ? a * count + b : b * count + a, a < b ? [a, b] : [b, a]);
+
+    const joined = new Array(count).fill(false);
+    const nearest = new Array(count).fill(Infinity);
+    const via = new Array(count).fill(-1);
+    nearest[0] = 0;
+    for (let step = 0; step < count; step++) {
+      let next = -1;
+      for (let i = 0; i < count; i++) {
+        if (!joined[i] && (next < 0 || nearest[i] < nearest[next])) next = i;
+      }
+      joined[next] = true;
+      if (via[next] >= 0) link(next, via[next]);
+      for (let i = 0; i < count; i++) {
+        if (!joined[i] && gap(next, i) < nearest[i]) {
+          nearest[i] = gap(next, i);
+          via[i] = next;
+        }
+      }
+    }
+
+    for (let a = 0; a < count; a++) {
+      const others = cards.map((_, b) => b).filter((b) => b !== a).sort((p, q) => gap(a, p) - gap(a, q));
+      others.slice(0, 3).forEach((b) => link(a, b));
+    }
+    return Array.from(links.values());
+  }
+
+  /** Two or three thin strands that leave one end together, drift apart and meet again. */
+  function fiberMarkup(length, random, pulsing) {
+    const width = Math.round(length * FIBER_UNITS);
+    const mid = FIBER_BAND / 2;
+    const strands = random() < 0.45 ? 3 : 2;
+    let paths = '';
+    let spark = '';
+    for (let s = 0; s < strands; s++) {
+      const out = (random() * 2 - 1) * 34;
+      const back = (random() * 2 - 1) * 34;
+      const d = `M0 ${mid}C${(width * 0.3).toFixed(1)} ${(mid + out).toFixed(1)} ${(width * 0.7).toFixed(1)} ${(mid + back).toFixed(1)} ${width} ${mid}`;
+      paths +=
+        `<path class="st-fiber-halo" pathLength="1" d="${d}"/>` +
+        `<path class="st-fiber-glow" pathLength="1" d="${d}"/>` +
+        `<path class="st-fiber-core" pathLength="1" d="${d}"/>`;
+      if (pulsing && s === 0) spark = `<path class="st-fiber-spark" pathLength="1" d="${d}"/>`;
+    }
+    return `<svg viewBox="0 0 ${width} ${FIBER_BAND}" aria-hidden="true">${paths}${spark}</svg>`;
+  }
+
+  function buildFibers() {
+    const fragment = document.createDocumentFragment();
+    fiberLinks().forEach(([i, j], index) => {
+      const a = cards[i];
+      const b = cards[j];
+      // CSS space (y points down): x runs along the chord, z faces out of the sphere.
+      const along = [b.x - a.x, a.y - b.y, b.z - a.z];
+      const centre = [(a.x + b.x) / 2, -(a.y + b.y) / 2, (a.z + b.z) / 2];
+      const chord = Math.hypot(...along);
+      const reach = Math.hypot(...centre);
+      const d = along.map((v) => v / chord);
+      const n = centre.map((v) => v / reach);
+      const w = [n[1] * d[2] - n[2] * d[1], n[2] * d[0] - n[0] * d[2], n[0] * d[1] - n[1] * d[0]];
+      const length = Math.max(0.12, chord - FIBER_TRIM * 2);
+      const random = seededRandom(i * 97 + j + 1);
+      const el = document.createElement('div');
+      el.className = 'st-fiber';
+      el.style.setProperty('--v', String(index));
+      el.style.setProperty('--spark', `${(2.6 + random() * 2.8).toFixed(2)}s`);
+      el.style.setProperty('--wait', `${(-random() * 5).toFixed(2)}s`);
+      el.innerHTML = fiberMarkup(length, random, !reduceMotion && index % FIBER_PULSE_EVERY === 0);
+      fibers.push({
+        el,
+        length,
+        reach,
+        basis: [...d, 0, ...w, 0, ...n, 0].map((v) => v.toFixed(4)).join(','),
+        x: centre[0],
+        y: centre[1],
+        z: centre[2],
+        o: -1,
+      });
+      fragment.appendChild(el);
+    });
+    orb.appendChild(fragment);
   }
 
   /* =============================================================== layout */
@@ -255,6 +399,15 @@
       c.el.style.transform =
         `translate3d(${(c.x * R).toFixed(1)}px,${(-c.y * R).toFixed(1)}px,${(c.z * R).toFixed(1)}px) ` +
         `rotateY(${c.lon.toFixed(2)}deg) rotateX(${c.lat.toFixed(2)}deg)`;
+    }
+    const band = (FIBER_BAND / FIBER_UNITS) * R;
+    const depth = R * FIBER_DEPTH;
+    for (const f of fibers) {
+      const width = f.length * R;
+      f.el.style.width = `${width.toFixed(1)}px`;
+      f.el.style.height = `${band.toFixed(1)}px`;
+      f.el.style.margin = `${(-band / 2).toFixed(1)}px 0 0 ${(-width / 2).toFixed(1)}px`;
+      f.el.style.transform = `matrix3d(${f.basis},${(f.x * depth).toFixed(1)},${(f.y * depth).toFixed(1)},${(f.z * depth).toFixed(1)},1)`;
     }
   }
 
@@ -356,6 +509,22 @@
         c.o = opacity;
         c.el.style.opacity = String(opacity);
         c.el.style.visibility = opacity <= 0.01 ? 'hidden' : '';
+      }
+    }
+    // Fibers have no dark wash to take: they fade with depth instead, and out entirely
+    // at the rim of the sphere, where a flat strip is seen edge-on as a broken line.
+    for (const f of fibers) {
+      const zf = -f.x * syn + (f.y * sxn + f.z * cx) * cy;
+      const base = 0.14 + 0.86 * Math.pow(Math.max(0, (zf + 1) / 2), 0.85);
+      const absZ = zf * R + cam.z;
+      const fade = absZ > near ? Math.max(0, 1 - (absZ - near) / 190) : 1;
+      const rim = (f.reach * R * FIBER_DEPTH) / Math.max(1, persp - cam.z); // facing at which it is edge-on
+      const facing = clamp((Math.abs(zf / f.reach - rim) - 0.08) / 0.2, 0, 1);
+      const opacity = Math.round(fade * facing * (1 - shade * (1 - base)) * 25) / 25;
+      if (opacity !== f.o) {
+        f.o = opacity;
+        f.el.style.opacity = String(opacity);
+        f.el.style.visibility = opacity <= 0.01 ? 'hidden' : '';
       }
     }
     requestAnimationFrame(frame);
@@ -491,6 +660,7 @@
     reveal();
   }, { once: true });
 
+  buildCredits();
   layout(true);
   requestAnimationFrame((now) => {
     lastTime = now;

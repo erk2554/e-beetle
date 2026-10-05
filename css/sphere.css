@@ -131,6 +131,90 @@ html.no-sphere .hud {
   }
 }
 
+/* -------------------------------------------------------------- fibers */
+
+/* Threads of green light between the plates, just inside the sphere so they pass behind
+   them. js/sphere.js places every strip and fades it with depth; here they draw themselves
+   in once the splash is gone (--v: link index) and some carry a spark that keeps
+   travelling (--spark: its lap time, --wait: its phase). */
+.st-fiber {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.st-fiber svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.st-fiber path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+/* A bright core inside two soft layers of glow (cheaper than a blur filter). */
+.st-fiber-halo,
+.st-fiber-glow,
+.st-fiber-core {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.7s var(--sp-ease);
+  transition-delay: calc(1s + var(--v, 0) * 0.04s);
+}
+
+.st-fiber-halo {
+  stroke: rgba(60, 207, 142, 0.1);
+  stroke-width: 30;
+}
+
+.st-fiber-glow {
+  stroke: rgba(60, 207, 142, 0.3);
+  stroke-width: 12;
+}
+
+.st-fiber-core {
+  stroke: #b9ffdc;
+  stroke-width: 4;
+}
+
+.is-revealed .st-fiber-halo,
+.is-revealed .st-fiber-glow,
+.is-revealed .st-fiber-core {
+  stroke-dashoffset: 0;
+}
+
+.st-fiber-spark {
+  stroke: #f2fff8;
+  stroke-width: 7;
+  stroke-dasharray: 0.07 2;
+  stroke-dashoffset: 0.07;
+  opacity: 0;
+  transition: opacity 0.8s ease 3s;
+  animation: st-fiber-spark var(--spark, 4s) linear var(--wait, 0s) infinite;
+}
+
+.is-revealed .st-fiber-spark {
+  opacity: 1;
+}
+
+.is-backdrop .st-fiber-spark,
+.is-locked .st-fiber-spark {
+  animation-play-state: paused;
+}
+
+@keyframes st-fiber-spark {
+  from {
+    stroke-dashoffset: 0.07;
+  }
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
 /* ------------------------------------------------------------ headline */
 
 /* Sits on the sphere origin: the parent is 0 wide, so the box is pulled back by half
@@ -413,6 +497,51 @@ html.no-sphere .hud {
   .hud-intro,
   .hud-cue {
     display: none;
+  }
+}
+
+/* -------------------------------------------------------------- credits */
+
+/* Photo credits for the sphere plates, folded away at the end of the footer
+   (a full-width row of the footer grid, like the copyright line above it). */
+.credits {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 100%;
+  max-width: 760px;
+  color: var(--sp-dim);
+  font-size: 0.74rem;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.credits summary {
+  cursor: pointer;
+  text-align: center;
+}
+
+.credits p {
+  margin: 10px 0 6px;
+}
+
+.credits ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.credits a {
+  color: inherit;
+  text-underline-offset: 2px;
+}
+
+.credits a:hover {
+  color: var(--sp-ink);
+}
+
+@media (min-width: 760px) {
+  .credits ul {
+    columns: 2;
+    column-gap: 32px;
   }
 }
 

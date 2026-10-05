@@ -766,8 +766,8 @@ a.card:hover .card-art .eb-art {
 }
 
 .ribbon--soldout {
-  background: #2c312e;
-  color: #cfd6d1;
+  background: #c62828;
+  color: #fff;
 }
 
 .card.is-soldout .card-media > img,
@@ -1049,9 +1049,9 @@ a.card:hover .card-more .icon {
 }
 
 .pill--soldout {
-  background: rgba(255, 255, 255, 0.06);
-  color: #b9c4bd;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  background: rgba(229, 57, 53, 0.14);
+  color: #ff8a80;
+  box-shadow: inset 0 0 0 1px rgba(229, 57, 53, 0.45);
 }
 
 /* --------------------------------------------------------------- features */
