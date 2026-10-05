@@ -26,6 +26,38 @@ window.EBEETLE_CATALOG = {
   },
   "products": [
     {
+      "id": "p9",
+      "name": "คาบูโตะซุปเปอร์เรดตาชมพู L3 เพศผู้",
+      "sci": "Allomyrina dichotoma",
+      "category": "larva",
+      "price": 500,
+      "unit": "ตัว",
+      "badge": "แนะนำ",
+      "status": "available",
+      "summary": "L3 ปลาย",
+      "description": "ตัวอ่อนด้วงคาบูโตะซุปเปอร์เรดตาชมพู L3 ปลาย\nแนะนำเลี้ยงอุณหภูมิ23องศา",
+      "specs": [
+        {
+          "label": "ระยะ",
+          "value": "ตัวอ่อนระยะ 3 (L3)"
+        },
+        {
+          "label": "เวลาเลี้ยงถึงตัวเต็มวัย",
+          "value": "ประมาณ 6–10 เดือน"
+        },
+        {
+          "label": "อาหาร",
+          "value": "แมท"
+        },
+        {
+          "label": "ระดับการเลี้ยง",
+          "value": "ง่าย"
+        }
+      ],
+      "images": [],
+      "art": {}
+    },
+    {
       "id": "p4",
       "name": "ด้วงเฮอร์คิวลิส",
       "sci": "Dynastes hercules hercules",
