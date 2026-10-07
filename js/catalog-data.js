@@ -10,7 +10,7 @@ window.EBEETLE_CATALOG = {
     "contactNote": "สนใจตัวไหน ทักแชทเพจ Facebook ได้เลยครับ ตอบไว พร้อมส่งรูปตัวจริงให้ดูก่อนตัดสินใจ",
     "stats": [
       {
-        "value": "12+",
+        "value": "4",
         "label": "สายพันธุ์"
       },
       {
@@ -22,7 +22,7 @@ window.EBEETLE_CATALOG = {
         "label": "ด้วงถึงมือมีชีวิต"
       }
     ],
-    "updatedAt": "2026-10-05T13:35:17.052Z"
+    "updatedAt": "2026-10-07T15:55:45.724Z"
   },
   "products": [
     {
